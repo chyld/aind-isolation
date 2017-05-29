@@ -4,11 +4,12 @@ and include the results in your report.
 """
 import random
 
-
 class SearchTimeout(Exception):
     """Subclass base exception for code clarity. """
     pass
 
+
+### ------------------------------------------------------------------------------------------- ###
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -37,6 +38,7 @@ def custom_score(game, player):
     # TODO: finish this function!
     raise NotImplementedError
 
+### ------------------------------------------------------------------------------------------- ###
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -63,6 +65,7 @@ def custom_score_2(game, player):
     # TODO: finish this function!
     raise NotImplementedError
 
+### ------------------------------------------------------------------------------------------- ###
 
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -89,6 +92,17 @@ def custom_score_3(game, player):
     # TODO: finish this function!
     raise NotImplementedError
 
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
 
 class IsolationPlayer:
     """Base class for minimax and alphabeta agents -- this class is never
@@ -118,6 +132,17 @@ class IsolationPlayer:
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
 
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
 
 class MinimaxPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using depth-limited minimax
@@ -209,12 +234,69 @@ class MinimaxPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        # by default the game allows 150 milliseconds for each turn, this timer code
+        # check ensures that this program doesn't exceed that limit - causing the user
+        # to wait a long time
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
+        # max_value returns a tuple with a float, and a list inside
+        # i.e., (3.0, [(3, 4), (5, 6), (7, 8)])
+        # the list is the history where that value originated, we grab
+        # the last value (7, 8) since that's where we want to move next
+        return self.max_value(game, depth)[1][-1]
 
-        # TODO: finish this function!
-        raise NotImplementedError
+    def max_value(self, game, depth):
+        # returns the max of the min values
+        # perform timer check
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        # get all legal moves available to current player
+        moves = game.get_legal_moves()
+        # if there is nowhere to go or if we are at max depth, then we
+        # return a score from this location
+        if depth == 0 or not moves:
+            return (self.score(game, self), [(-1, -1)])
+        # contains all the scores from the min-nodes, which will be recursively called
+        results = []
+        # iterate over all possible moves
+        for move in moves:
+            # recursively call min_value, the forcast_move takes the move
+            # i want to try and applies it to a copy of the current game
+            # also, since we are descending deeper, i decrement depth by 1
+            # returns a tuple -> (score, [move, move, move])
+            score, history = self.min_value(game.forecast_move(move), depth - 1)
+            # save all the moves so we can use it later
+            history.append(move)
+            results.append((score, history))
+        # returning the maximum value from all the min-nodes. includes the history
+        return max(results)
 
+    def min_value(self, game, depth):
+        # just like the "max_value" function, above, except it returns the
+        # min of the max values
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        moves = game.get_legal_moves()
+        if depth == 0 or not moves:
+            return (self.score(game, self), [(-1, -1)])
+        results = []
+        for move in moves:
+            score, history = self.max_value(game.forecast_move(move), depth - 1)
+            history.append(move)
+            results.append((score, history))
+        return min(results)
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
 
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
@@ -307,3 +389,15 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         # TODO: finish this function!
         raise NotImplementedError
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
+### ------------------------------------------------------------------------------------------- ###
