@@ -269,13 +269,13 @@ from isolation import Board
 
 if __name__ == "__main__":
 
-    player1 = MinimaxPlayer(score_fn=open_move_score, search_depth=2)
-    player2 = GreedyPlayer()
-    game = Board(player1, player2, width=7, height=7)
-    winner, history, outcome = game.play()
-    print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
-    print(game.to_string())
-    print("Move history:\n{!s}".format(history))
+    for i in range(10):
+        player1 = AlphaBetaPlayer(score_fn=open_move_score)
+        # player2 = MinimaxPlayer(score_fn=open_move_score, search_depth=2)
+        player2 = GreedyPlayer()
+        game = Board(player1, player2, width=7, height=7)
+        winner, history, outcome = game.play()
+        print("Winner: {} Reason: {}".format(winner, outcome))
 
 ### ----------------------------------------------------------------------------------------------------- ###
 ### ----------------------------------------------------------------------------------------------------- ###

@@ -335,20 +335,18 @@ class AlphaBetaPlayer(IsolationPlayer):
             (-1, -1) if there are no available legal moves.
         """
         self.time_left = time_left
-
-        # Initialize the best move so that this function returns something
-        # in case the search fails due to timeout
         best_move = (-1, -1)
 
         try:
-            # The try/except block will automatically catch the exception
-            # raised when the timer is about to expire.
-            return self.alphabeta(game, self.search_depth)
-
+            depth = -1
+            while True:
+                depth += 1
+                best_score, best_move_list = self.alphabeta(game, depth)
+                best_move = best_move_list[-1]
+                if best_score >= float('inf') or best_score <= float('-inf'): break
         except SearchTimeout:
-            pass  # Handle any actions required after timeout as needed
+            pass
 
-        # Return the best move from the last completed search iteration
         return best_move
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
@@ -398,8 +396,37 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
+        return self.max_value(game, depth, alpha, beta)
 
-        return (-1, -1)
+    def max_value(self, game, depth, alpha, beta):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        moves = game.get_legal_moves()
+        if depth == 0 or not moves:
+            return (self.score(game, self), [(-1, -1)])
+        results = []
+        for move in moves:
+            score, history = self.min_value(game.forecast_move(move), depth - 1, alpha, beta)
+            history.append(move)
+            results.append((score, history))
+            if score >= beta: return (score, history)
+            alpha = max(alpha, score)
+        return max(results)
+
+    def min_value(self, game, depth, alpha, beta):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+        moves = game.get_legal_moves()
+        if depth == 0 or not moves:
+            return (self.score(game, self), [(-1, -1)])
+        results = []
+        for move in moves:
+            score, history = self.max_value(game.forecast_move(move), depth - 1, alpha, beta)
+            history.append(move)
+            results.append((score, history))
+            if score <= alpha: return (score, history)
+            beta = min(beta, score)
+        return min(results)
 
 ### ------------------------------------------------------------------------------------------- ###
 ### ------------------------------------------------------------------------------------------- ###
