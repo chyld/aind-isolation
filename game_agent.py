@@ -356,18 +356,15 @@ class AlphaBetaPlayer(IsolationPlayer):
         best_move = (-1, -1)
 
         # performing iterative deepening search
-        # start with depth 0, get a score and best move
-        # if the score is +/- infinity then exit loop
-        # else keep going deeper. once time has expired
+        # start with depth 0, get best move, then
+        # continue to go deeper as time permits
         # an exception will get thrown and caught here
         # which i will then return the latest best move
         try:
             depth = -1
             while True:
                 depth += 1
-                best_score, best_move_list = self.alphabeta(game, depth)
-                best_move = best_move_list[-1]
-                if best_score >= float('inf') or best_score <= float('-inf'): break
+                best_move = self.alphabeta(game, depth)
         except SearchTimeout:
             pass
 
@@ -426,7 +423,9 @@ class AlphaBetaPlayer(IsolationPlayer):
         # we call max_value with alpha = -inf and beta = +inf
         # max_value returns a tuple with a float, and a list inside
         # i.e., (3.0, [(3, 4), (5, 6), (7, 8)])
-        return self.max_value(game, depth, alpha, beta)
+        # the list is the history where that value originated, we grab
+        # the last value (7, 8) since that's where we want to move next
+        return self.max_value(game, depth, alpha, beta)[1][-1]
 
     def max_value(self, game, depth, alpha, beta):
         # returns the max of the min values
