@@ -12,8 +12,7 @@ class SearchTimeout(Exception):
 ### ------------------------------------------------------------------------------------------- ###
 
 def custom_score(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
+    """This heuristic will calculate a random value as the score.
 
     This should be the best heuristic function for your project submission.
 
@@ -35,14 +34,19 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    return random.random()
 
 ### ------------------------------------------------------------------------------------------- ###
 
 def custom_score_2(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
+    """This heuristic will calculate the ratio of my_moves over the total
+    moves or my_moves / (my_moves + opponent_moves).
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -62,14 +66,20 @@ def custom_score_2(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves / (own_moves + opp_moves))
 
 ### ------------------------------------------------------------------------------------------- ###
 
 def custom_score_3(game, player):
-    """Calculate the heuristic value of a game state from the point of view
-    of the given player.
+    """This heuristic will calculate the distance between the two players.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -89,8 +99,16 @@ def custom_score_3(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    raise NotImplementedError
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    y1, x1 = game.get_player_location(player)
+    y2, x2 = game.get_player_location(game.get_opponent(player))
+    d = (((y2 - y1) ** 2) + ((x2 - x1) ** 2)) ** 0.5
+    return float(d)
 
 ### ------------------------------------------------------------------------------------------- ###
 ### ------------------------------------------------------------------------------------------- ###
@@ -337,6 +355,12 @@ class AlphaBetaPlayer(IsolationPlayer):
         self.time_left = time_left
         best_move = (-1, -1)
 
+        # performing iterative deepening search
+        # start with depth 0, get a score and best move
+        # if the score is +/- infinity then exit loop
+        # else keep going deeper. once time has expired
+        # an exception will get thrown and caught here
+        # which i will then return the latest best move
         try:
             depth = -1
             while True:
@@ -394,26 +418,45 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        # by default the game allows 150 milliseconds for each turn, this timer code
+        # check ensures that this program doesn't exceed that limit - causing the user
+        # to wait a long time
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
+        # we call max_value with alpha = -inf and beta = +inf
+        # max_value returns a tuple with a float, and a list inside
+        # i.e., (3.0, [(3, 4), (5, 6), (7, 8)])
         return self.max_value(game, depth, alpha, beta)
 
     def max_value(self, game, depth, alpha, beta):
+        # returns the max of the min values
+        # perform timer check
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         moves = game.get_legal_moves()
+        # if there is nowhere to go or if we are at max depth, then we
+        # return a score from this location
         if depth == 0 or not moves:
             return (self.score(game, self), [(-1, -1)])
         results = []
         for move in moves:
+            # recursively call min_value, the forcast_move takes the move
+            # i want to try and applies it to a copy of the current game
+            # also, since we are descending deeper, i decrement depth by 1
+            # returns a tuple -> (score, [move, move, move])
             score, history = self.min_value(game.forecast_move(move), depth - 1, alpha, beta)
+            # save all the moves so we can use it later
             history.append(move)
             results.append((score, history))
+            # alpha/beta pruning
             if score >= beta: return (score, history)
             alpha = max(alpha, score)
+        # returning the maximum value from all the min-nodes. includes the history
         return max(results)
 
     def min_value(self, game, depth, alpha, beta):
+        # just like the "max_value" function, above, except it returns the
+        # min of the max values
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
         moves = game.get_legal_moves()
